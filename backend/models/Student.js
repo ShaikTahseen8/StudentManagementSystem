@@ -1,21 +1,24 @@
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
-  firstName: { type: String, default: '' },
+  firstName: { type: String, required: true },
   lastName: { type: String, default: '' },
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   collegeId: { type: String, required: true },
-  course: { type: String, default: 'Computer Science' },
-  department: { type: String, default: 'Engineering & Technology' },
-  semester: { type: String, default: 'Semester 4' },
-  phone: { type: String, default: '+91 98765 43210' },
-  gender: { type: String, default: 'Other' },
-  password: { type: String, default: 'student123' },
+  course: { 
+    type: String, 
+    required: true,
+    enum: ['Pharmacy', 'MBBS', 'B.Tech', 'M.Tech', 'MBA', 'Computer Science', 'BBA', 'Nursing', 'Data Science', 'Mechanical Engineering'],
+    default: 'B.Tech' 
+  },
+  academicYear: { type: String, default: '2nd Year' },
+  semester: { type: String, default: 'Semester 3' },
   cgpa: { type: String, default: '8.5' },
   attendance: { type: Number, default: 75 },
   status: { type: String, default: 'Active' },
-  feeStatus: { type: String, default: 'Paid' },
+  feeStatus: { type: String, enum: ['Paid', 'Not Paid', 'Pending'], default: 'Paid' },
+  password: { type: String, default: 'student123' },
   enrolledCourses: [{
     code: String,
     title: String,
@@ -26,15 +29,15 @@ const studentSchema = new mongoose.Schema({
   }]
 }, { timestamps: true });
 
-// Pre-save hook to auto calculate status based on 60% rule and maintain name
+// Pre-save hook: compute full name and 60% Attendance Rule (Active / Deactive)
 studentSchema.pre('save', function(next) {
   if (this.firstName && this.lastName) {
     this.name = `${this.firstName} ${this.lastName}`.trim();
-  } else if (this.firstName && !this.lastName) {
+  } else if (this.firstName) {
     this.name = this.firstName;
   }
   if (this.attendance !== undefined && this.attendance !== null) {
-    this.status = Number(this.attendance) >= 60 ? 'Active' : 'Inactive';
+    this.status = Number(this.attendance) >= 60 ? 'Active' : 'Deactive';
   }
   next();
 });
